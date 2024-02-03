@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ios testing</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/camera2.css">
+    <!-- permissions -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- font-awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <!-- favicon -->
+    <link rel="shortcut icon" type="image/ico" href="assets/image/favicon.ico">
+    <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="assets/image/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/image/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/image/favicon-16x16.png">
+</head>
+
+<body>
+    <div class="main">
+        <input type="checkbox" id="chk" aria-hidden="true">
+        <div class="signup">
+            <label for="chk" class="dos" aria-hidden="true">D#sharp & Suuzi's Wedding </label>
+            <ul style="list-style-type: none; color:#dedede" align="left">
+                <li><i class="fa-solid fa-camera" style="color: #dedede;"></i> Click Selfie and Get Photos </li>
+                <li><i class="fa-solid fa-check" style="color: #27db0f;"></i> Photos must be captured at present </li>
+                <li><i class="fa-solid fa-check" style="color: #27db0f;"></i> Individual selfie</li>
+                <li><i class="fa-solid fa-check" style="color: #27db0f;"></i> Good lighting</li>
+                <li><i class="fa-solid fa-xmark" style="color: #ee2b2b;"></i> Sunglasses, masks, caps</li>
+                <li><i class="fa-solid fa-xmark" style="color: #ee2b2b;"></i> Group selfies</li>
+                <li><i class="fa-solid fa-xmark" style="color: #ee2b2b;"></i> Eyes closed</li>
+                <li><i class="fa-solid fa-xmark" style="color: #ee2b2b;"></i> Filters</li>
+            </ul>
+        </div>
+
+        <div class="login">
+            <form action="/" id="reg-page" method="post" enctype="multipart/form-data">
+                <label for="chk" class="register" aria-hidden="true">Register</label>
+                <input type="text" name="name" placeholder='Enter your Name' required>
+                <input type="text" name="phonenumber" placeholder="Whatsapp Number" required>
+                <input type="hidden" name="capturedImage" id="capturedImageInput">
+                <button id="show" class="cus" type="button"><i class="fa-solid fa-camera"></i> Open Camera</button>
+                <input class="button submit-button" type="submit" value="Get Photos">
+                <style></style>
+            </form>
+        </div>
+
+        <div class="popup" id="popup">
+            <h1>Capture your Face</h1>
+            <p align="center" class="red-text">Keep your face in Center</p>
+            <p align="center">and Press Capture</p>
+            <div class="frame">
+                <img id="capturedImage" style="display: none;" alt="Captured Image">
+                <div id="camera-container" class="circular-camera">
+                    <video id="camera" playsinline autoplay muted></video>
+                </div>
+            </div>
+            <div class="buttons" id="imageButtons" style="display: block;">
+                <button class="action cam-btn" id="takePhotoBtn" onclick="capturePhoto()"><i class="fa-solid fa-camera"></i> </button>
+                <button class="action cam-btn" id="retakeBtn" onclick="retakePhoto()" style="display: none;"><i class="fa-solid fa-camera"></i> </button>
+                <button class="action done-btn" id="doneBtn" onclick="savePhoto()" style="display: none;"><i class="fa-solid fa-check"></i> </button>
+                <button class="action closePopupBtn" id="closePopupBtn" onclick="closePopup()"><i class="fa-regular fa-circle-xmark" style="color: #fff;"></i></button>
+            </div>
+            <div class="close-btn" onclick="closePopup()">X</div>
+        </div>
+
+        <script>
+            let isMirrored = true;
+
+            document.querySelector('#show').addEventListener('click', function() {
+                const constraints = {
+                    video: {
+                        facingMode: 'user',
+                        width: 600,
+                        height: 600,
+                    },
+                };
+
+                navigator.mediaDevices.getUserMedia(constraints)
+                    .then(function(stream) {
+                        initializeCamera(stream);
+                        document.querySelector('.popup').style.display = 'block';
+                    })
+                    .catch(function(err) {
+                        console.error('Error accessing the camera: ', err);
+                    });
+            });
+
+            function initializeCamera(stream) {
+                const video = document.querySelector('#camera');
+                video.srcObject = stream;
+                video.play();
+            }
+
+            function capturePhoto() {
+                const video = document.querySelector('#camera');
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const image = new Image();
+                image.src = canvas.toDataURL('image/jpeg');
+
+                document.querySelector('#capturedImage').src = image.src;
+                document.querySelector('#capturedImage').style.display = 'inline';
+                document.getElementById('retakeBtn').style.display = 'inline'; // Show retake button
+                document.getElementById('doneBtn').style.display = 'inline'; // Show done button
+                document.getElementById('takePhotoBtn').style.display = 'none'; // Hide take photo button
+            }
+
+            function retakePhoto() {
+                document.querySelector('#capturedImage').style.display = 'none';
+                document.querySelector('#capturedImage').src = '';
+                document.getElementById('retakeBtn').style.display = 'none'; // Hide retake button
+                document.getElementById('doneBtn').style.display = 'none'; // Hide done button
+                document.getElementById('takePhotoBtn').style.display = 'inline'; // Show take photo button
+            }
+
+            function closePopup() {
+                document.querySelector('.popup').style.display = 'none';
+                const video = document.querySelector('#camera');
+                const stream = video.srcObject;
+                const tracks = stream.getTracks();
+
+                tracks.forEach(track => track.stop());
+
+                document.querySelector('#capturedImage').src = '';
+                document.querySelector('#capturedImage').style.display = 'none';
+            }
+
+            function savePhoto() {
+                const imageDataURI = document.querySelector('#capturedImage').src;
+                document.querySelector('#capturedImageInput').value = imageDataURI;
+                document.querySelector('#show').innerText = 'Selfie.jpg';
+                closePopup();
+            }
+
+            document.querySelector('#closePopupBtn').addEventListener('click', closePopup);
+        </script>
+
+    </div>
+    <style>
+        /* loader */
+        /* end of loader */
+        
+        body,
+        .suc-body {
+            margin: 0!important;
+            padding: 0!important;
+            display: flex!important;
+            justify-content: center!important;
+            align-items: center!important;
+            min-height: 100vh!important;
+            font-family: 'Jost', sans-serif!important;
+            background: url('../image/background.png') no-repeat center center fixed!important;
+            background-size: cover!important;
+        }
+        
+        .main {
+            width: 350px!important;
+            height: 500px!important;
+            background: red!important;
+            overflow: hidden!important;
+            background: url("https://doc-08-2c-docs.googleusercontent.com/docs/securesc/68c90smiglihng9534mvqmq1946dmis5/fo0picsp1nhiucmc0l25s29respgpr4j/1631524275000/03522360960922298374/03522360960922298374/1Sx0jhdpEpnNIydS4rnN4kHSJtU1EyWka?e=view&authuser=0&nonce=gcrocepgbb17m&user=03522360960922298374&hash=tfhgbs86ka6divo3llbvp93mg4csvb38") no-repeat center/ cover!important;
+            border-radius: 10px!important;
+            box-shadow: 5px 20px 50px #000!important;
+            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e)!important;
+            /* background: linear-gradient(to bottom, #ff8787, #eeacac, #FF9B9B)!important ; */
+        }
+        
+        #chk {
+            display: none!important;
+        }
+        
+        .register {
+            margin-bottom: 25px!important;
+        }
+        
+        .dos {
+            margin-bottom: 20px !important;
+            font-size: 25px !important;
+        }
+        
+        .signup {
+            position: relative!important;
+            width: 100%!important;
+            height: 100%!important;
+        }
+        
+        label {
+            color: #fff!important;
+            font-size: 2.3em!important;
+            justify-content: center!important;
+            display: flex!important;
+            margin: 60px!important;
+            font-weight: bold!important;
+            cursor: pointer!important;
+            transition: .5s ease-in-out!important;
+        }
+        
+        input {
+            width: 60%!important;
+            height: 42px!important;
+            background: #e0dede!important;
+            justify-content: center!important;
+            display: flex!important;
+            margin: 20px auto!important;
+            padding: 10px!important;
+            border: none!important;
+            outline: none!important;
+            border-radius: 5px!important;
+        }
+        
+        .button,
+        .submit-button {
+            width: 60%!important;
+            height: 40px!important;
+            margin: 10px auto!important;
+            justify-content: center!important;
+            display: block!important;
+            color: #fff!important;
+            background: #573b8a!important;
+            font-size: 1em!important;
+            font-weight: bold!important;
+            margin-top: 20px!important;
+            outline: none!important;
+            border: none!important;
+            border-radius: 5px!important;
+            transition: .2s ease-in!important;
+            cursor: pointer!important;
+        }
+        
+        .cus {
+            width: 60%!important;
+            height: 40px!important;
+            margin: 10px auto!important;
+            justify-content: center!important;
+            display: block!important;
+            font-size: 1em!important;
+            font-weight: bold!important;
+            margin-top: 20px!important;
+            outline: none!important;
+            border: none!important;
+            border-radius: 5px!important;
+            transition: .2s ease-in!important;
+            cursor: pointer!important;
+        }
+        
+        .cus {
+            background-image: linear-gradient(to right, #FF512F 0%, #DD2476 51%, #FF512F 100%) !important;
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+            box-shadow: 0 0 20px #eee;
+            border-radius: 10px;
+            display: block;
+        }
+        
+        .cus:hover {
+            background-position: right center;
+            color: #fff;
+            text-decoration: none;
+        }
+        
+        .button:hover {
+            background: #6d44b8!important;
+        }
+        
+        .login {
+            height: 460px!important;
+            background: #eee!important;
+            border-radius: 60% / 10%!important;
+            transform: translateY(-180px)!important;
+            transition: .8s ease-in-out!important;
+        }
+        
+        .login label {
+            color: #573b8a!important;
+            transform: scale(.6)!important;
+        }
+        
+        #chk:checked~.login {
+            transform: translateY(-500px)!important;
+        }
+        
+        #chk:checked~.login label {
+            transform: scale(1)!important;
+        }
+        
+        #chk:checked~.signup label {
+            transform: scale(.6)!important;
+        }
+        
+        .suc-body {
+            justify-content: center!important;
+            display: flex!important;
+        }
+        
+        .suc-icon {
+            margin: auto !important;
+        }
+        /* ***********success page*************** */
+        
+        @media only screen and (min-width: 992px) {
+            .suc-body {
+                justify-content: center!important;
+                display: flex!important;
+                font-family: 'Jost', sans-serif!important;
+                letter-spacing: 2px!important;
+                font-size: 17px!important;
+                font-weight: 100 !important;
+            }
+            .suc-icon {
+                margin: auto !important;
+            }
+        }
+        
+        .tx_main {
+            text-align: center!important;
+            padding: 10%!important;
+            padding-top: 2% !important;
+        }
+        
+        .suc-body {
+            display: inline-block!important;
+            /* font-family: 'Jost', sans-serif!important ; */
+            background: url('../image/background.png') no-repeat center center fixed!important;
+            background-size: cover!important;
+            background-color: rgba(255, 255, 255, 0.5) !important;
+        }
+        
+        .suc-icon {
+            margin: 30% 0 0 25%!important;
+            font-size: 10rem!important;
+        }
+        
+        .popup {
+            width: 350px;
+            height: 600px;
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 1%;
+            margin: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            margin-top: 20px;
+        }
+        
+        p {
+            font-size: 20px;
+            margin: 10px;
+        }
+        
+        .frame {
+    width: 300px;
+    height: 300px;
+    border: 5px dashed #27db0f;
+    margin: auto;
+    position: relative;
+    overflow: hidden;
+    /* Ensure a perfect circle */
+    border-radius: 50%;
+    /* Add this line to hide any overflow content */
+    box-sizing: border-box;
+}
+        
+        #camera-container {
+            margin-top: 2%;
+            margin-left: 1.5%;
+            margin-bottom: 2% !important;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform: translateZ(0);
+            /* Prevent anti-aliasing issues in some browsers */
+        }
+        
+        #camera {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        #capturedImage {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            transform: scaleX(1);
+        }
+        
+        .circular-camera .mask {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        
+        .action {
+            margin: 0px !important;
+            padding: 0px !important;
+            width: 80px !important;
+            height: 40px !important;
+            font-size: 24px !important;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        #takePhotoBtn {
+            background-image: linear-gradient(to right, #FF512F 0%, #DD2476 51%, #FF512F 100%) !important;
+            transition: 0.5s;
+            color: white;
+            box-shadow: 0 0 20px #eee;
+            border-radius: 10px;
+        }
+        
+        #retakeBtn {
+            background-image: linear-gradient(to right, #FF512F 0%, #DD2476 51%, #FF512F 100%) !important;
+            color: white;
+            display: none;
+        }
+        
+        #doneBtn {
+            background-image: linear-gradient(to right, #ADD100 0%, #7B920A 51%, #ADD100 100%);
+            transition: 0.5s;
+            color: white;
+            display: none;
+        }
+        
+        .done-btn {
+            background-image: linear-gradient(to right, #ADD100 0%, #7B920A 51%, #ADD100 100%);
+            text-align: center;
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+            box-shadow: 0 0 20px #eee;
+            border-radius: 10px;
+            display: block;
+        }
+        
+        .done-btn:hover {
+            background-position: right center;
+            color: #fff;
+            text-decoration: none;
+        }
+        
+        #toggleMirrorBtn {
+            background-color: blue;
+            color: white;
+        }
+        
+        #closePopupBtn {
+            background-image: linear-gradient(to right, #D31027 0%, #EA384D 51%, #D31027 100%);
+            transition: 0.5s;
+            color: white;
+        }
+        
+        .closePopupBtn {
+            background-image: linear-gradient(to right, #D31027 0%, #EA384D 51%, #D31027 100%);
+            text-align: center;
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+            box-shadow: 0 0 20px #eee;
+            border-radius: 10px;
+            display: block;
+        }
+        
+        .closePopupBtn:hover {
+            background-position: right center;
+            color: #fff;
+            text-decoration: none;
+        }
+        
+        .close-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 22px;
+            background-color: rgba(128, 128, 128, 0.705);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        
+        #show {
+            width: 200px;
+            height: 100px;
+            font-size: 36px;
+            background-color: green;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 100px auto;
+            display: block;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        
+        #camera {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            transform: scaleX(-1);
+            /* Flip the video horizontally */
+        }
+        
+        .mask {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 1) 100%);
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            height: auto;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .captured-image-container {
+            margin: 10px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        /* Mobile view styles */
+        
+        @media (max-width: 600px) {
+            button {
+                width: 100%;
+            }
+        }
+        /* Pop up  */
+        /* body {
+            font: normal 14px/100% "Andale Mono", AndaleMono, monospace;
+            width: 300px;
+            margin: 0 auto;
+            display:flex;
+            align-items:center;
+            height:100vh;
+          } */
+        
+        .Click-here {
+            cursor: pointer;
+            background-image: linear-gradient(190deg, #f83600 0%, #fee140 100%);
+            color: #fff;
+            width: 180px;
+            text-align: center;
+            font-size: 16px;
+            padding: 18px 0;
+            margin: 0 auto;
+            transition: background-image 3s ease-in-out;
+        }
+        
+        .Click-here:hover {
+            transition: background-image 3s ease-in-out;
+            background-image: linear-gradient(90deg, #fee140 0%, #f83600 100%);
+        }
+        
+        .custom-model-main {
+            text-align: center;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            /* z-index: 1050; */
+            -webkit-overflow-scrolling: touch;
+            outline: 0;
+            opacity: 0;
+            -webkit-transition: opacity 0.15s linear, z-index 0.15;
+            -o-transition: opacity 0.15s linear, z-index 0.15;
+            transition: opacity 0.15s linear, z-index 0.15;
+            z-index: -1;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        .model-open {
+            z-index: 99999;
+            opacity: 1;
+            overflow: hidden;
+        }
+        
+        .custom-model-inner {
+            -webkit-transform: translate(0, -25%);
+            -ms-transform: translate(0, -25%);
+            transform: translate(0, -25%);
+            -webkit-transition: -webkit-transform 0.3s ease-out;
+            -o-transition: -o-transform 0.3s ease-out;
+            transition: -webkit-transform 0.3s ease-out;
+            -o-transition: transform 0.3s ease-out;
+            transition: transform 0.3s ease-out;
+            transition: transform 0.3s ease-out, -webkit-transform 0.3s ease-out;
+            display: inline-block;
+            vertical-align: middle;
+            width: 600px;
+            margin: 30px auto;
+            max-width: 97%;
+        }
+        
+        .custom-model-wrap {
+            display: block;
+            width: 100%;
+            position: relative;
+            background-color: #fff !important;
+            border: 1px solid #999;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+            background-clip: padding-box;
+            outline: 0;
+            text-align: left;
+            padding: 20px;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            max-height: calc(100vh - 70px);
+            overflow-y: auto;
+        }
+        
+        .model-open .custom-model-inner {
+            -webkit-transform: translate(0, 0);
+            -ms-transform: translate(0, 0);
+            transform: translate(0, 0);
+            position: relative;
+            z-index: 999;
+        }
+        
+        .model-open .bg-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 99;
+        }
+        
+        .bg-overlay {
+            background: rgba(0, 0, 0, 0);
+            height: 100vh;
+            width: 100%;
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            -webkit-transition: background 0.15s linear;
+            -o-transition: background 0.15s linear;
+            transition: background 0.15s linear;
+        }
+        
+        @media screen and (min-width:800px) {
+            .custom-model-main:before {
+                content: "";
+                display: inline-block;
+                height: auto;
+                vertical-align: middle;
+                margin-right: -0px;
+                height: 100%;
+            }
+        }
+        
+        @media screen and (max-width:799px) {
+            .custom-model-inner {
+                margin-top: 45px;
+            }
+        }
+    </style>
+</body>
+
+</html>
